@@ -1,5 +1,6 @@
 #include <clang-c/Index.h>
 #include <stdio.h>
+#include <assert.h>
 
 // starting point
 // https://mikeash.com/pyblog/friday-qa-2014-01-24-introduction-to-libclang.html
@@ -8,6 +9,8 @@
 
 int
 main(int argc, char** argv) {
+	assert(argc == 2);
+	
 	CXIndex index = clang_createIndex(0, 0);
 
 	const char *args[] = {
@@ -16,7 +19,7 @@ main(int argc, char** argv) {
 	};
 	int numArgs = sizeof(args) / sizeof(*args);
 
-	CXTranslationUnit tu = clang_parseTranslationUnit(index, "libclang.m", args, numArgs, NULL, 0, CXTranslationUnit_None);
+	CXTranslationUnit tu = clang_parseTranslationUnit(index, argv[1], args, numArgs, NULL, 0, CXTranslationUnit_None);
 
     unsigned diagnosticCount = clang_getNumDiagnostics(tu);
 	for(unsigned i = 0; i < diagnosticCount; i++) {
@@ -31,6 +34,17 @@ main(int argc, char** argv) {
 		clang_disposeString(text);
 	}
 
+	int	res = clang_visitChildrenWithBlock(clang_getTranslationUnitCursor(tu), ^(CXCursor cursor, CXCursor parent){
+		CXCursorKind	kind = clang_getCursorKind(cursor);
+		CXString	ks = clang_getCursorKindSpelling(kind);
+		fprintf(stderr, "kind: %s (%i)\n", clang_getCString(ks), kind);
+		clang_disposeString(ks);
+		
+		return CXChildVisit_Continue;
+		return CXChildVisit_Recurse;
+	});
+	
+	assert(0 == res);
 
 	return 0;
 }
