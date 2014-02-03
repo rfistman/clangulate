@@ -1,4 +1,10 @@
 #include <clang-c/Index.h>
+#include <stdio.h>
+
+// starting point
+// https://mikeash.com/pyblog/friday-qa-2014-01-24-introduction-to-libclang.html
+// Xcode configuration
+// http://therealbnut.wordpress.com/2012/01/01/setting-xcode-4-0-environment-variables-from-a-script/
 
 int
 main(int argc, char** argv) {
@@ -15,11 +21,14 @@ main(int argc, char** argv) {
     unsigned diagnosticCount = clang_getNumDiagnostics(tu);
 	for(unsigned i = 0; i < diagnosticCount; i++) {
 		CXDiagnostic diagnostic = clang_getDiagnostic(tu, i);
-CXSourceLocation location = clang_getDiagnosticLocation(diagnostic);
-clang_getSpellingLocation(location, NULL, &line, &column, NULL);
-CXString text = clang_getDiagnosticSpelling(diagnostic);
-fprintf(stderr, "%u:%u: %s\n", line, column, clang_getCString(text));
-clang_disposeString(text);
+
+		CXSourceLocation location = clang_getDiagnosticLocation(diagnostic);
+		
+		unsigned line, column;	// WTF clang, would it kill you to write int?
+		clang_getSpellingLocation(location, NULL, &line, &column, NULL);
+		CXString text = clang_getDiagnosticSpelling(diagnostic);
+		fprintf(stderr, "%u:%u: %s\n", line, column, clang_getCString(text));
+		clang_disposeString(text);
 	}
 
 
